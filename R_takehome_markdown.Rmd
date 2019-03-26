@@ -1,6 +1,6 @@
 ---
 title: 'Tech Test'
-author: "David"
+author: "David DeStephano"
 date: "February 13, 2019"
 output:
   html_document: default
