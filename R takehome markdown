@@ -6,10 +6,83 @@ output:
   html_document: default
   pdf_document: default
 ---
+---
+title: 'Technical Test: Quantitative Sciences Markdown'
+author: "David DeStephano"
+date: "February 13, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+## Your datasets consist of:
+Medication orders
+
+patient_id: patient identifier for internal purposes
+
+external_patient_id: patient identifier for external (client) purposes
+
+order_id: unique identifier of each medication ordered by a health provider
+
+order_date: date in which medication was ordered by a health provider
+
+Medication administrations
+
+patient_id: patient identifier for internal purposes
+
+external_patient_id: patient identifier for external (client) purposes
+
+order_id: unique identifier of each medication ordered for a patient by a health provider
+
+administered_date: date in which ordered medication was administered
+
+drug_name: drug administered to patient
+
+Patient demographics
+
+patient_id: patient identifier for internal purposes
+
+gender: gender of patient
+
+age: age of patient at the time of diagnosis
+
+race: racial group classification of patient
+
+Patients
+
+patient_id: patient identifier for internal purposes
+
+external_patient_id: patient identifier for external purposes
+
+external_practice_id: practice identifier for external purposes
+
+internal_practice_id: practice (site at which patient receives oncology care) identifier for Internal purposes
+
+diagnosis_date: date on which patient was initially diagnosed
+
+advanced_diagnosis_date: date on which patient was diagnosed as advanced
+
+Practices
+
+practice_id: client identifier for internal purposes
+
+external_practice_id: client identifier for external (client) purposes
+
+emr_system: software product used by the client
+
+(OncoE = OncoEMR; OncoA = OncoAnalytics; OncoB = OncoBilling) practice_type: classification of practice into either community or academic bucket active: status of client
+
+## 1.	When presented with a new dataset or database, what steps do you generally take to evaluate it prior to working with it?
+My first step when working with a new dataset it to become familiar with the variables and their significance using the data dictionary or metadata. I then determine the structure of the data, what format the files are in, the quality of the data (are there missing values, formatting issues?). If I am working with a particularly large dataset, I will inspect the first one hundred rows. I will then determine how the data needs to be cleaned or if there are any variables that need to be transformed for my analysis. In most situations I will produce summary statistics or visualizations as an initial step to familiarize myself with the distribution and parameters of the data, and perhaps determine if there are any outliers or irregularities (non-normality, skewness), depending on my planned analysis.
+
+##2.	Based on the information provided above and the attached dataset, what 3 questions would you like to understand prior to conducting any analysis of the data?
+a)	What hypothesis do we want to test/what trends and insights do we expect to discover in the data?
+b)	What are the best ways to analyze the data to determine any meaningful relationships given its content/variables?
+c)	How will the analysis be used once it is completed?
 
 ##3.	How would you prep the dataset provided for analysis? Please list steps taken and provide code used to prep the tables for analysis. 
 -	Convert the data into a usable format. It is currently saved as an excel worksheet with several sheets, so the sheets need to be extracted and read into R. This could be achieved by simply saving each sheet as a separate CSV and reading them into R, but it is also possible to use the âreadxlâ package to import the individual sheets, and then read them in. 
