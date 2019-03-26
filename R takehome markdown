@@ -6,14 +6,6 @@ output:
   html_document: default
   pdf_document: default
 ---
----
-title: 'Technical Test: Quantitative Sciences Markdown'
-author: "David DeStephano"
-date: "February 13, 2019"
-output:
-  html_document: default
-  pdf_document: default
----
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -201,4 +193,65 @@ table(DF4$risk, DF4$gender, DF4$race)
 table2<-table(DF4$risk) 
 prop.table(table2)
 
+```
+
+## 4.	  Please create a visualization that could be used to help a medical researcher understand how drug prevalence has changed over time.
+
+Although histograms and bar charts are good for visualizing a single variable, generally a line graph is the better option for visualizing trends over time. I will provide histogram and bar chart examples on the bonus page.
+
+Lets condition the line chart on the type of drug and convert the dates to the overall year using lubridate:
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+DF2$year<-lubridate::year(DF2$my_administered_date)     
+ggplot(DF2,aes(x=year,color=drug_name)) + geom_line(stat='count', size=1) + scale_x_continuous(limits = c(2010,2016))
+
+```
+
+Drug prevalence has risen from 2011 to 2014, while 2015 had reversals for bevacizumab and erlotinib hcl. Axitinib has increased slowly. Bevacizumab and erlotinib hcl rose sharply from 2012 to 2014, and then decreased in 2015. While nivolumab prevalence has increased sharply and continues to climb. These trends are not specific to any single client, but we could easily visualize trends for clients individually.
+
+
+##Bonus:
+Alternative approaches to the if else example:
+
+1)	Custom functions.  
+This approach would be the best option if it were necessary to run this code multiple times. For a one time run like this, the extra programming is unnecessary since it will not make things more efficient in the future.
+```{r}
+Risk_Function <- function(DF){
+  Risk <- ifelse(DF$age>=70  & DF$gender=="male" & DF$race=="NON_WHITE", "HighRisk",
+                 ifelse(DF$gender=="female" & DF$race=="NON_WHITE", "HighRisk",
+                        ifelse(DF$gender=="female" & DF$age>=75 & DF$race=="WHITE", "MediumRisk",
+                               ifelse(DF$gender=="male" & DF$age<70 & DF$race=="NON_WHITE", "MediumRisk",
+                                      ifelse(DF$gender=="female" & DF$age<75 & DF$race=="WHITE", "LowRisk",
+                                             ifelse(DF$gender=="male" & DF$race=="WHITE", "LowRisk", 
+                                                    NA))))))
+  return (Risk)
+} 
+
+DF$Risk <- DF %>% Risk_Function()
+```
+2)	More Efficient ifelse: ifelse is a little more efficient by combining similar outputs with an or (|) statement, at the cost of it being slightly less easy to read
+```{r}
+DF3<-DF%>%
+  mutate(risk=ifelse((DF$age>=70  & DF$gender=="male" & DF$race=="NON_WHITE")|(DF$gender=="female" & DF$race=="NON_WHITE"), "HighRisk",
+                            ifelse((DF$gender=="female" & DF$age>=75 & DF$race=="WHITE")|(DF$gender=="male" & DF$age<70 & DF$race=="NON_WHITE"), "MediumRisk",
+                                          ifelse((DF$gender=="female" & DF$age<75 & DF$race=="WHITE")|(DF$gender=="male" & DF$race=="WHITE"), "LowRisk",
+                                                 NA))))
+```
+3)	 Which: Which statements are easy and efficient
+```{r}
+DF$Risk[which((DF$age>=70  & DF$gender=="male" & DF$race=="NON_WHITE")|(DF$gender=="female" & DF$race=="NON_WHITE"))] <- "HighRisk"
+DF$Risk[which((DF$gender=="female" & DF$age>=75 & DF$race=="WHITE")|(DF$gender=="male" & DF$age<70 & DF$race=="NON_WHITE"))] <- "MediumRisk"
+DF$Risk[which((DF$gender=="female" & DF$age<75 & DF$race=="WHITE")|(DF$gender=="male" & DF$race=="WHITE"))] <- "LowRisk"
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#Basic histogram of drug administration over time. We can make this look a lot better 
+ggplot(DF2, aes(my_administered_date)) + geom_histogram(binwidth=80) + ggtitle("Drug Administration")
+
+#This chart is good for visualizing total drug prevalence for each year, but not as helpful as the line chart in illustrating individual drug comparisons:
+ggplot(DF2, aes(year)) + geom_histogram(binwidth = 0.5, aes(fill=drug_name)) + ggtitle("Drug Administration") + scale_x_continuous(limits = c(2010,2016))
+
+#A basic bar chart for each drug over time
+ggplot(DF2,aes(x=year,fill=drug_name)) + geom_bar(stat='count', position = "dodge", width = .8) + scale_x_continuous(limits = c(2010,2016))
 ```
