@@ -98,7 +98,7 @@ Demographics<-read.csv("Demographics.csv", stringsAsFactors=FALSE)
 Patients<-read.csv("Patients.csv", stringsAsFactors=FALSE)
 Practices<-read.csv("Practices.csv", stringsAsFactors=FALSE)
 ```
--	With the data in R, we can see there are two data frames (Demographics and Patients) with 101 observations, and two (Orders, and Admins) with 304 observations. After inspecting the two pairs, it makes sense to join the pairs with equal observations on a few key identifiers (similar to SQL) to simplify the analysis. I will name the new combined Patient and Demographic table as âDFâ, and the combined Orders and Admins table as âDF2â, for simplicity. I will also use a full join so I do not lose any patients that may not have a common identifier between the tables. 
+-	With the data in R, we can see there are two data frames (Demographics and Patients) with 101 observations, and two (Orders, and Admins) with 304 observations. After inspecting the two pairs, it makes sense to join the pairs with equal observations on a few key identifiers (similar to SQL) to simplify the analysis. I will name the new combined Patient and Demographic table as "DF", and the combined Orders and Admins table as "DF2", for simplicity. I will also use a full join so I do not lose any patients that may not have a common identifier between the tables. 
 ```{r message=FALSE, warning=FALSE}
 DF<-full_join(Patients, Demographics, by='patient_id')
 DF2<-full_join(Admins, Orders, by=c("patient_id", "external_patient_id", "order_id"))
