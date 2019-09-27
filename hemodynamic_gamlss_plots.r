@@ -1,6 +1,6 @@
 install.packages("readxl")
 library("readxl")
-my_data <- read_excel("C:\\Users\\Dave\\Desktop\\TRAC\\data\\model data\\Ages_n11426.xlsx")
+my_data <- read_excel("\\Ages_n11426.xlsx")
 x <- as.data.frame(my_data)
 
 install.packages("gamlss")
