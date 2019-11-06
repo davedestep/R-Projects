@@ -64,30 +64,6 @@ raines2.ps <- ps(as.formula(ps_formula),
 
 
 
-
-################################################
-df.mv %>% 
-  mutate(ga_updated=as.factor(ga_updated)) %>% 
-  ggplot(aes(x=ps))+
-  geom_histogram()+
-  facet_grid(~ga_updated)+theme_bw()
-  
-
-
-df.mv %>% 
-  mutate(ga_updated=as.factor(ga_updated)) %>% 
-  group_by(ga_updated) %>% 
-  summarise(mean=mean(ps))
-
-plot(raines2.ps)
-
-summary(raines2.ps$gbm.obj,
-        n.trees=raines2.ps$desc$ks.mean.ATT$n.trees)
-
-
-
-
-
 ######################################
 #Should check the overlap at this step
 ######################################
@@ -125,6 +101,32 @@ grid.arrange(plot1, plot2, plot3, plot4, ncol=2)
 
 
 
+
+
+
+##########
+df.mv %>% 
+  mutate(ga_updated=as.factor(ga_updated)) %>% 
+  ggplot(aes(x=ps))+
+  geom_histogram()+
+  facet_grid(~ga_updated)+theme_bw()
+  
+
+
+df.mv %>% 
+  mutate(ga_updated=as.factor(ga_updated)) %>% 
+  group_by(ga_updated) %>% 
+  summarise(mean=mean(ps))
+
+plot(raines2.ps)
+
+summary(raines2.ps$gbm.obj,
+        n.trees=raines2.ps$desc$ks.mean.ATT$n.trees)
+
+
+
+
+
 ##############################################################################
 ####                       Matching                                       ####
 ##############################################################################
@@ -135,13 +137,13 @@ ps.scores4 <- raines2.ps$ps$es.max.ATE
 
 
 df.mv <- raines2.ps$data %>%
-  bind_cols(ps = ps.scores) %>% bind_cols(ps = ps.scores2)%>% bind_cols(ps = ps.scores3)%>% bind_cols(ps = ps.scores4)
-  filter(!is.na(y10intt))
+  bind_cols(ps = ps.scores) %>% bind_cols(ps = ps.scores2)%>% bind_cols(ps = ps.scores3)%>% bind_cols(ps = ps.scores4) %>% 
+  filter(!is.na(y10tott))
 
-matched.mv <- Match(Y = df.mv$y10intt,
+matched.mv <- Match(Y = df.mv$y10tott,
                     Tr = df.mv$ga_updated,
                     X = df.mv$ps,
-                    estimand = 'ATT',
+                    estimand = 'ATE',
                     caliper = 0.2,
                     M = 3,
                     replace = FALSE,
@@ -153,5 +155,120 @@ index.treated <- matched.mv$index.treated
 index.control <- matched.mv$index.control
 df.matched.mv <- rbind(df.mv[row.names(df.mv) %in% index.treated, ], 
                        df.mv[row.names(df.mv) %in% index.control, ])
+
+
+
+#Linear model
+ATE.TOTTT.Reg <- glm(y10tott~ga_updated + sex+ m_race_new + m_schlvl_new + income_new+ u_smkave_new+ u_alcoh_new, data=df.matched.mv)
+summary(ATE.TOTTT.Reg)               
+
+
+
+
+
+
+
+
+
+###########################################################
+###########################################################
+###########################################################
+###########################################################
+#Matching using matchit
+###########################################################
+###########################################################
+###########################################################
+library(MatchIt)
+library(kableExtra)
+
+pacman::p_load(tableone)
+table1 <- CreateTableOne(vars = c('sex', 'm_schlvl_new', 'income_new', 'u_smkave_new', 'u_alcoh_new', 'y10tott'), 
+                         data = raines2, 
+                         factorVars = c('sex', 'm_schlvl_new', 'income_new', 'u_smkave_new', 'u_alcoh_new'), 
+                         strata = 'ga_updated')
+table1 <- print(table1, 
+                printToggle = FALSE, 
+                noSpaces = TRUE)
+kable(table1[,1:3],  
+      align = 'c', 
+      caption = 'Table 1: Comparison of unmatched samples') %>% kable_styling
+
+raines3<-raines2 %>% 
+  dplyr::select(ga_updated, y10tott, sex, m_race_new, m_schlvl_new, income_new, u_smkave_new, u_alcoh_new) %>% 
+  filter(!is.na(y10tott))
+
+match.it <- matchit(ga_updated ~  sex+ m_race_new + m_schlvl_new + income_new+ u_smkave_new+ u_alcoh_new, data = raines3, method="nearest", ratio=5)
+a <- summary(match.it)
+
+kable(a$nn, digits = 2, align = 'c', 
+      caption = 'Table 2: Sample sizes') %>% 
+  kable_styling
+
+kable(a$sum.matched[c(1,2,4)], digits = 2, align = 'c', 
+      caption = 'Table 3: Summary of balance for matched data') %>% 
+  kable_styling
+
+plot(match.it, type = 'jitter', interactive = FALSE)
+
+
+df.match <- match.data(match.it)[1:ncol(raines3)]
+
+
+pacman::p_load(tableone)
+table4 <- CreateTableOne(vars = c('sex', 'm_schlvl_new', 'income_new', 'u_smkave_new', 'u_alcoh_new', 'y10tott'), 
+                         data = df.match, 
+                         factorVars = c('sex', 'm_schlvl_new', 'income_new', 'u_smkave_new', 'u_alcoh_new'), 
+                         strata = 'ga_updated')
+table4 <- print(table4, 
+                printToggle = FALSE, 
+                noSpaces = TRUE)
+kable(table4[,1:3],  
+      align = 'c', 
+      caption = 'Table 4: Comparison of matched samples') %>% 
+  kable_styling
+
+
+ATE.TOTTT.Reg <- glm(y10tott~ga_updated, data=df.match)
+summary(ATE.TOTTT.Reg)               
+
+
+
+
+
+
+
+##############################################################################
+#Can't pull out columns from a data with class "PS", is there a fix?
+matches <- function(x) {
+  
+  df.mv <- raines2.ps[[data]])
+  # %>%
+  #   bind_cols(ps = ps.scores)
+}
+  df.mv <-df.mv[!is.na(df.mv[["x"]]),]
+  
+}
+  
+  matched.mv <- Match(Y = df.mv[[x]],
+                      Tr = df.mv$ga_updated,
+                      X = df.mv$ps,
+                      estimand = 'ATT',
+                      caliper = 0.2,
+                      M = 3,
+                      replace = FALSE,
+                      version = 'standard') # version = 'fast'
+  
+  
+  # Regenerate matched data frames using the indices returned by the Match function
+  index.treated <- matched.mv$index.treated
+  index.control <- matched.mv$index.control
+  x.df.matched.mv <- rbind(df.mv[row.names(df.mv) %in% index.treated, ], 
+                         df.mv[row.names(df.mv) %in% index.control, ])
+  
+}
+
+matches()
+
+matches("y10intt")
 
 
