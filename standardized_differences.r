@@ -1,4 +1,5 @@
-#Use this macros is SAS to get Standardized differences
+#Use this macro in SAS to get Standardized differences
+#http://www.lerner.ccf.org/qhs/software/lib/stddiff.sas
 
 #Plot:
 
