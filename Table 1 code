@@ -1,0 +1,116 @@
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(readxl)
+library(summarytools)
+library(magrittr)
+library(broom)
+library(knitr)
+library(tinytex)
+library(tables)
+library(Hmisc)
+library(Gmisc)
+setwd("C:\\Users\\daved\\Documents\\Chris CBD study tables")
+
+cbd<-read_excel("CBD survey_AC_JMP 8.5.19.xlsx") %>% janitor::clean_names()
+```
+
+
+
+```{r}
+df <- cbd%>%
+  select(race_simple_2, ethnicity, marital_status, highest_level_of_education, insurance, employment, what_medications_have_you_used_for_your_pelvic_pain, what_adjuvant_treatments_have_you_used_for_your_pelvic_pain, have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain) %>% 
+  map(~chisq.test(.x, cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain)) %>% 
+  tibble(names = names(.), data = .) %>% 
+  mutate(stats = map(data, tidy))
+
+
+df2<-unnest(df, stats) %>% filter(names!="have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain") %>% select(-data)
+kable(df2)
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r warning=FALSE}
+cbd[sapply(cbd, is.character)] <- lapply(cbd[sapply(cbd, is.character)], as.factor)
+
+
+levels(cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain)
+
+cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain <- 
+  factor(cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain, 
+         levels=c("Yes","No"))
+
+
+label(cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain) <- "Cannabis or THC"
+
+getTable1Stats <- function(x, digits = 1){
+  getDescriptionStatsBy(x = x, 
+                        by =cbd$have_you_used_either_cbd_or_thc_as_treatment_for_your_pelvic_pain,
+                        digits = digits,
+                        #html=FALSE,
+                        continuous_fn = describeMean,
+                        factor_fn = describeFactors,
+                        show_all_values = TRUE,
+                        header_count = TRUE,
+                        useNA = "no",
+                        statistics = list(continuous = getPvalWilcox, 
+                                          factor = getPvalFisher, 
+                                          proportion = getPvalFisher))
+  
+}
+
+t1 <- list()
+t1[["Age (years)"]] <-
+  getTable1Stats(cbd$age)
+
+t1[["Race"]] <-
+  getTable1Stats(cbd$race_simple_2)
+  
+t1[["Ethnicity"]] <-
+  getTable1Stats(cbd$ethnicity)
+
+t1[["Marital Status"]] <-
+  getTable1Stats(cbd$marital_status)
+
+t1[["Highest level of Education"]] <-
+  getTable1Stats(cbd$highest_level_of_education)
+
+t1[["Insurance Payer"]] <-
+  getTable1Stats(cbd$insurance)
+
+t1[["Employment status"]] <-
+  getTable1Stats(cbd$employment)
+
+# t1[["Medications used for CPP"]] <-
+#   getTable1Stats(cbd$what_medications_have_you_used_for_your_pelvic_pain)
+
+# cbd<-cbd %>% mutate(=ifelse(opiods==1, "Opioid medications",
+#                                   ifelse(tpi_or_botox==1, "Trigger point or Botox injections", 
+#                                          ifelse(muscle_relax_or_vag_supp==1,"Muscle relaxers or vaginal
+# suppositories",
+#                                                 ifelse(otc_meds==1, "Over the Counter Pain medication",  NA)))))
+
+
+
+ 
+# t1[["Adjuvant treatments used for CPP"]] <-
+#   getTable1Stats(cbd$what_adjuvant_treatments_have_you_used_for_your_pelvic_pain)
+
+
+
+
+mergeDesc(t1) %>%
+  htmlTable(css.rgroup = "",
+            caption  = "P-values generated from a custom set of values",
+            tfoot = "&dagger; Whatever you want the dagger to be")
+
+
+```
